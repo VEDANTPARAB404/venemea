@@ -1,0 +1,380 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
+  color: #1f2937;
+  background: #f9fafb;
+  line-height: 1.6;
+}
+
+/* Navigation */
+.navbar {
+  background: white;
+  border-bottom: 2px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.nav-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 70px;
+}
+
+.nav-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 30px;
+}
+
+.nav-menu a {
+  text-decoration: none;
+  color: #6b7280;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.nav-menu a:hover {
+  color: #3b82f6;
+}
+
+/* Container */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px 30px; /* add spacing below sticky navbar */
+}
+
+/* Sections */
+.section {
+  position: relative;
+  margin: 70px 0; /* more vertical spacing between sections */
+  padding: 40px 40px 50px 40px; /* extra bottom padding for charts */
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  scroll-margin-top: 90px; /* avoid anchors hiding under sticky navbar */
+}
+
+.section h2 {
+  font-size: 32px;
+  margin-bottom: 25px;
+  color: #111827;
+  border-bottom: 3px solid #3b82f6;
+  padding-bottom: 15px;
+}
+
+.section h3 {
+  font-size: 22px;
+  margin: 30px 0 15px 0;
+  color: #1f2937;
+}
+
+.section p {
+  margin-bottom: 15px;
+  color: #4b5563;
+  font-size: 15px;
+  line-height: 1.8;
+}
+
+.section ul {
+  margin-left: 20px;
+  margin-bottom: 20px;
+}
+
+.section li {
+  margin-bottom: 12px;
+  color: #4b5563;
+  line-height: 1.8;
+}
+
+/* Keywords */
+.keywords-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.keyword {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 14px;
+}
+
+/* Mermaid Diagram */
+.mermaid-container {
+  background: #f3f4f6;
+  padding: 25px;
+  border-radius: 10px;
+  margin: 25px 0;
+  border: 2px dashed #d1d5db;
+  overflow-x: auto;
+  clear: both; /* ensure diagram doesn't collide with following content */
+}
+
+.mermaid {
+  display: flex;
+  justify-content: center;
+}
+
+/* Tables */
+.table-wrapper {
+  overflow-x: auto;
+  margin: 25px 0;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  clear: both; /* prevent overlap with previous floats/content */
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+thead {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: white;
+}
+
+th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 600;
+}
+
+td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+tbody tr:hover {
+  background: #f9fafb;
+}
+
+.proposed-row {
+  background: #dbeafe;
+  font-weight: 600;
+}
+
+.best-row {
+  background: #dcfce7;
+  font-weight: 600;
+}
+
+.category-label {
+  background: #f3f4f6;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+/* Algorithm Cards */
+.algorithm-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+
+.algo-card {
+  background: linear-gradient(135deg, #ffffff, #f9fafb);
+  padding: 20px;
+  border-radius: 10px;
+  border-left: 4px solid #3b82f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.algo-card h4 {
+  color: #3b82f6;
+  margin-bottom: 10px;
+  font-size: 16px;
+}
+
+.algo-card p {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* Model Parameters */
+.model-params {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin: 25px 0;
+}
+
+.param-box {
+  background: #f0f9ff;
+  padding: 15px;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  font-size: 14px;
+  color: #1e40af;
+}
+
+/* Pipeline Steps */
+.pipeline-steps {
+  background: #f9fafb;
+  padding: 25px 30px;
+  border-radius: 10px;
+  margin: 25px 0;
+  border-left: 4px solid #10b981;
+}
+
+.pipeline-steps li {
+  margin-bottom: 15px;
+  color: #1f2937;
+  line-height: 1.8;
+}
+
+/* Metrics Grid */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 25px 0;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+  color: white;
+  padding: 25px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.metric-value {
+  font-size: 36px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.metric-label {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+/* Charts */
+.chart-container {
+  position: relative;
+  min-height: 360px;
+  margin: 35px 0 10px 0;
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  clear: both; /* ensure charts start on new line */
+  overflow: hidden; /* avoid canvas overflow */
+}
+
+/* Findings List */
+.findings-list {
+  background: #ecfdf5;
+  padding: 25px 30px;
+  border-radius: 10px;
+  border-left: 4px solid #10b981;
+  margin: 25px 0;
+}
+
+.findings-list li {
+  color: #065f46;
+  margin-bottom: 12px;
+}
+
+/* Limitations List */
+.limitations-list {
+  background: #fef2f2;
+  padding: 25px 30px;
+  border-radius: 10px;
+  border-left: 4px solid #dc2626;
+  margin: 25px 0;
+}
+
+.limitations-list li {
+  color: #7f1d1d;
+  margin-bottom: 12px;
+}
+
+/* Future List */
+.future-list {
+  background: #fef3c7;
+  padding: 25px 30px;
+  border-radius: 10px;
+  border-left: 4px solid #f59e0b;
+  margin: 25px 0;
+}
+
+.future-list li {
+  color: #78350f;
+  margin-bottom: 12px;
+}
+
+/* Footer */
+.footer {
+  background: #1f2937;
+  color: white;
+  text-align: center;
+  padding: 30px;
+  margin-top: 60px;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .nav-menu {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .section {
+    padding: 25px;
+    margin: 40px 0;
+  }
+
+  .keywords-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-container {
+    min-height: 280px;
+  }
+
+  .algorithm-grid {
+    grid-template-columns: 1fr;
+  }
+
+  table {
+    font-size: 12px;
+  }
+
+  th,
+  td {
+    padding: 10px;
+  }
+}

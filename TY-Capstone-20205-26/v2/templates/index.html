@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Circadian Rhythm Analysis — Interactive Dashboard</title>
+  <meta name="description" content="Interactive dashboard for circadian rhythm analysis using machine learning on multi-modal health data."/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="bg-mesh"></div>
+
+<!-- ───── NAVBAR ───── -->
+<nav class="navbar">
+  <div class="navbar-inner">
+    <div class="nav-brand">
+      <div class="icon">🧬</div>
+      <span>Circadian Rhythm Analysis</span>
+    </div>
+    <div class="nav-links">
+      <a href="/" class="active">Dashboard</a>
+    </div>
+    <div class="nav-status">
+      <div class="dot"></div>
+      <span>Model Active</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ───── DASHBOARD GRID ───── -->
+<main class="dashboard-grid">
+
+  <!-- ===== LEFT: INPUT PANEL ===== -->
+  <section class="glass-card input-panel" id="input-panel">
+    <div class="panel-header">
+      <h2>Health Metrics Input</h2>
+      <p>Adjust the sliders or use a preset to analyse your circadian stability</p>
+    </div>
+
+    <!-- Quick presets -->
+    <div class="presets">
+      <button class="preset-btn" data-sleep="8.0" data-bed="8.5" data-hr="55" data-steps="12000">🏆 Excellent</button>
+      <button class="preset-btn" data-sleep="7.5" data-bed="8.0" data-hr="65" data-steps="8500">👍 Good</button>
+      <button class="preset-btn" data-sleep="6.0" data-bed="7.5" data-hr="78" data-steps="5500">😐 Average</button>
+      <button class="preset-btn" data-sleep="4.5" data-bed="6.5" data-hr="92" data-steps="2500">⚠️ Poor</button>
+    </div>
+
+    <!-- Sleep Hours -->
+    <div class="input-group">
+      <div class="input-label">
+        <span>💤 Sleep Hours</span>
+        <span class="value-badge" id="sleep-val">7.5 h</span>
+      </div>
+      <input type="range" id="sleep-slider" min="1" max="12" step="0.1" value="7.5"/>
+    </div>
+
+    <!-- Bed Time -->
+    <div class="input-group">
+      <div class="input-label">
+        <span>🛏️ Time in Bed</span>
+        <span class="value-badge" id="bed-val">8.0 h</span>
+      </div>
+      <input type="range" id="bed-slider" min="1" max="14" step="0.1" value="8.0"/>
+    </div>
+
+    <!-- Heart Rate -->
+    <div class="input-group">
+      <div class="input-label">
+        <span>❤️ Resting Heart Rate</span>
+        <span class="value-badge" id="hr-val">65 bpm</span>
+      </div>
+      <input type="range" id="hr-slider" min="35" max="150" step="1" value="65"/>
+    </div>
+
+    <!-- Daily Steps -->
+    <div class="input-group">
+      <div class="input-label">
+        <span>🚶 Daily Steps</span>
+        <span class="value-badge" id="steps-val">8,500</span>
+      </div>
+      <input type="range" id="steps-slider" min="0" max="25000" step="100" value="8500"/>
+    </div>
+
+    <button class="analyze-btn" id="analyze-btn" onclick="runAnalysis()">
+      <span class="spinner"></span>
+      <span class="btn-text">Analyze Circadian Health</span>
+    </button>
+  </section>
+
+  <!-- ===== TOP-RIGHT: SCORE PANEL ===== -->
+  <section class="glass-card score-section" id="score-section">
+    <!-- Placeholder -->
+    <div id="placeholder" class="placeholder-state">
+      <div class="placeholder-icon">🌙</div>
+      <h3>Awaiting Your Data</h3>
+      <p>Enter your health metrics and click Analyze to receive your personalised circadian stability score and insights.</p>
+    </div>
+
+    <!-- Results (hidden until analysis) -->
+    <div id="results-area" class="hidden">
+      <div class="score-panel">
+        <div class="score-ring-wrapper">
+          <div class="score-ring">
+            <svg viewBox="0 0 180 180">
+              <defs>
+                <linearGradient id="scoreGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3b82f6"/>
+                  <stop offset="50%" stop-color="#8b5cf6"/>
+                  <stop offset="100%" stop-color="#06b6d4"/>
+                </linearGradient>
+              </defs>
+              <circle class="bg-circle" cx="90" cy="90" r="80"/>
+              <circle class="progress-circle" id="score-arc" cx="90" cy="90" r="80"/>
+            </svg>
+            <div class="score-value">
+              <div class="score-number" id="score-number">—</div>
+              <div class="score-label">out of 100</div>
+            </div>
+          </div>
+        </div>
+        <div class="score-details">
+          <div class="score-status" id="score-status"></div>
+          <p style="color:var(--text-muted);font-size:0.85rem;line-height:1.7" id="score-summary"></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== METRICS ROW ===== -->
+  <div class="metrics-row" id="metrics-row">
+    <div class="glass-card metric-card blue" id="mc-sleep">
+      <div class="metric-icon">💤</div>
+      <div class="metric-val" id="mv-sleep">—</div>
+      <div class="metric-name">Sleep Efficiency</div>
+      <div class="metric-bar"><div class="metric-bar-fill" id="mb-sleep"></div></div>
+    </div>
+    <div class="glass-card metric-card purple" id="mc-hrv">
+      <div class="metric-icon">💓</div>
+      <div class="metric-val" id="mv-hrv">—</div>
+      <div class="metric-name">HRV (RMSSD)</div>
+      <div class="metric-bar"><div class="metric-bar-fill" id="mb-hrv"></div></div>
+    </div>
+    <div class="glass-card metric-card cyan" id="mc-psqi">
+      <div class="metric-icon">📊</div>
+      <div class="metric-val" id="mv-psqi">—</div>
+      <div class="metric-name">Sleep Quality</div>
+      <div class="metric-bar"><div class="metric-bar-fill" id="mb-psqi"></div></div>
+    </div>
+    <div class="glass-card metric-card green" id="mc-activity">
+      <div class="metric-icon">🏃</div>
+      <div class="metric-val" id="mv-activity">—</div>
+      <div class="metric-name">Activity Score</div>
+      <div class="metric-bar"><div class="metric-bar-fill" id="mb-activity"></div></div>
+    </div>
+  </div>
+
+  <!-- ===== CHARTS + RECS ===== -->
+  <div class="charts-recs-grid" id="charts-recs">
+
+    <!-- Radar chart -->
+    <div class="glass-card chart-card" id="radar-card">
+      <div class="section-title"><div class="icon blue">📡</div> Health Breakdown</div>
+      <canvas id="radarChart"></canvas>
+    </div>
+
+    <!-- Feature importance -->
+    <div class="glass-card chart-card" id="feature-card">
+      <div class="section-title"><div class="icon purple">🔬</div> Feature Importance</div>
+      <canvas id="featureChart"></canvas>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="glass-card recs-panel" id="recs-panel">
+      <div class="section-title"><div class="icon green">💡</div> Personalised Recommendations</div>
+      <div class="recs-grid" id="recs-grid"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ──── DOM REFS ────
+const sleepSlider = document.getElementById('sleep-slider');
+const bedSlider   = document.getElementById('bed-slider');
+const hrSlider    = document.getElementById('hr-slider');
+const stepsSlider = document.getElementById('steps-slider');
+const sleepVal = document.getElementById('sleep-val');
+const bedVal   = document.getElementById('bed-val');
+const hrVal    = document.getElementById('hr-val');
+const stepsVal = document.getElementById('steps-val');
+
+let radarChart = null;
+let featureChart = null;
+let analysisHistory = [];
+
+// ──── SLIDER UPDATES ────
+sleepSlider.oninput = () => {
+  sleepVal.textContent = parseFloat(sleepSlider.value).toFixed(1) + ' h';
+  if (parseFloat(bedSlider.value) < parseFloat(sleepSlider.value)) {
+    bedSlider.value = sleepSlider.value;
+    bedVal.textContent = parseFloat(bedSlider.value).toFixed(1) + ' h';
+  }
+};
+bedSlider.oninput = () => {
+  bedVal.textContent = parseFloat(bedSlider.value).toFixed(1) + ' h';
+  if (parseFloat(bedSlider.value) < parseFloat(sleepSlider.value)) {
+    sleepSlider.value = bedSlider.value;
+    sleepVal.textContent = parseFloat(sleepSlider.value).toFixed(1) + ' h';
+  }
+};
+hrSlider.oninput  = () => hrVal.textContent = hrSlider.value + ' bpm';
+stepsSlider.oninput = () => stepsVal.textContent = parseInt(stepsSlider.value).toLocaleString();
+
+// ──── PRESETS ────
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    sleepSlider.value = btn.dataset.sleep;
+    bedSlider.value   = btn.dataset.bed;
+    hrSlider.value    = btn.dataset.hr;
+    stepsSlider.value = btn.dataset.steps;
+    sleepSlider.oninput();
+    bedSlider.oninput();
+    hrSlider.oninput();
+    stepsSlider.oninput();
+  });
+});
+
+// ──── ANALYSIS ────
+async function runAnalysis() {
+  const btn = document.getElementById('analyze-btn');
+  btn.classList.add('loading');
+
+  const payload = {
+    sleep_hours: parseFloat(sleepSlider.value),
+    bed_time_hours: parseFloat(bedSlider.value),
+    avg_hr: parseInt(hrSlider.value),
+    daily_steps: parseInt(stepsSlider.value)
+  };
+
+  try {
+    const res = await fetch('/api/predict', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+
+    renderResults(data);
+    loadFeatureImportance();
+  } catch (err) {
+    showToast(err.message || 'Analysis failed');
+  } finally {
+    btn.classList.remove('loading');
+  }
+}
+
+// ──── RENDER RESULTS ────
+function renderResults(data) {
+  document.getElementById('placeholder').classList.add('hidden');
+  document.getElementById('results-area').classList.remove('hidden');
+
+  // Animate score ring
+  const score = data.circadian_score;
+  const arc = document.getElementById('score-arc');
+  const circumference = 2 * Math.PI * 80; // ~502
+  const offset = circumference - (score / 100) * circumference;
+  arc.style.strokeDashoffset = offset;
+
+  // Animate score number
+  animateNumber('score-number', score, 1);
+
+  // Status
+  const statusEl = document.getElementById('score-status');
+  let color = '#10b981', dotColor = '#10b981';
+  if (score < 40)       { color = '#f43f5e'; dotColor = '#f43f5e'; }
+  else if (score < 60)  { color = '#f59e0b'; dotColor = '#f59e0b'; }
+  else if (score < 80)  { color = '#3b82f6'; dotColor = '#3b82f6'; }
+  statusEl.innerHTML = `<span class="status-dot" style="background:${dotColor};box-shadow:0 0 10px ${dotColor}80"></span><span style="color:${color}">${data.status}</span>`;
+
+  // Summary
+  const summaryEl = document.getElementById('score-summary');
+  const sleepEff = data.sleep_efficiency;
+  summaryEl.textContent = `Your sleep efficiency is ${sleepEff}%, estimated HRV is ${data.estimated_hrv} ms, and PSQI score is ${data.estimated_psqi.toFixed(1)}. ${score >= 80 ? 'Great circadian health!' : score >= 60 ? 'Room for improvement.' : 'Consider prioritising the recommendations below.'}`;
+
+  // Update gradient based on score
+  const grad = document.querySelector('#scoreGradient');
+  if (score >= 80) {
+    grad.children[0].setAttribute('stop-color','#10b981');
+    grad.children[1].setAttribute('stop-color','#06b6d4');
+    grad.children[2].setAttribute('stop-color','#3b82f6');
+  } else if (score >= 60) {
+    grad.children[0].setAttribute('stop-color','#3b82f6');
+    grad.children[1].setAttribute('stop-color','#8b5cf6');
+    grad.children[2].setAttribute('stop-color','#06b6d4');
+  } else if (score >= 40) {
+    grad.children[0].setAttribute('stop-color','#f59e0b');
+    grad.children[1].setAttribute('stop-color','#f97316');
+    grad.children[2].setAttribute('stop-color','#eab308');
+  } else {
+    grad.children[0].setAttribute('stop-color','#ef4444');
+    grad.children[1].setAttribute('stop-color','#f43f5e');
+    grad.children[2].setAttribute('stop-color','#dc2626');
+  }
+
+  // Metric cards
+  document.getElementById('mv-sleep').textContent = data.sleep_efficiency + '%';
+  document.getElementById('mv-hrv').textContent = data.estimated_hrv + ' ms';
+  const sleepQualityPct = Math.max(0, Math.min(100, 100 - (data.estimated_psqi / 21) * 100)).toFixed(0);
+  document.getElementById('mv-psqi').textContent = sleepQualityPct + '%';
+  const actScore = Math.min(100, (data.input_data.daily_steps / 10000) * 100).toFixed(0);
+  document.getElementById('mv-activity').textContent = actScore + '%';
+
+  // Bars
+  setTimeout(() => {
+    document.getElementById('mb-sleep').style.width = data.sleep_efficiency + '%';
+    document.getElementById('mb-hrv').style.width = Math.min(100, data.estimated_hrv) + '%';
+    document.getElementById('mb-psqi').style.width = sleepQualityPct + '%';
+    document.getElementById('mb-activity').style.width = actScore + '%';
+  }, 100);
+
+  // Radar chart
+  renderRadar(data.radar);
+
+  // Recommendations
+  const recsGrid = document.getElementById('recs-grid');
+  recsGrid.innerHTML = '';
+  data.recommendations.forEach((rec, i) => {
+    const icon = rec.match(/^[\u{1F300}-\u{1FAD6}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u);
+    const card = document.createElement('div');
+    card.className = 'rec-card';
+    card.style.animationDelay = (i * 0.06) + 's';
+    card.innerHTML = `<span class="rec-icon">${icon ? icon[0] : '💡'}</span><span>${rec.replace(/^[\u{1F300}-\u{1FAD6}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]\s*/u, '')}</span>`;
+    recsGrid.appendChild(card);
+  });
+}
+
+// ──── ANIMATE NUMBER ────
+function animateNumber(id, target, decimals) {
+  const el = document.getElementById(id);
+  let start = 0;
+  const duration = 1200;
+  const t0 = performance.now();
+  function tick(now) {
+    const p = Math.min((now - t0) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    const cur = start + (target - start) * ease;
+    el.textContent = cur.toFixed(decimals);
+    if (p < 1) requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+}
+
+// ──── RADAR CHART ────
+function renderRadar(radar) {
+  const ctx = document.getElementById('radarChart').getContext('2d');
+  if (radarChart) radarChart.destroy();
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: radar.labels,
+      datasets: [{
+        label: 'Your Score',
+        data: radar.values,
+        backgroundColor: 'rgba(59,130,246,0.15)',
+        borderColor: '#3b82f6',
+        borderWidth: 2,
+        pointBackgroundColor: '#3b82f6',
+        pointRadius: 4,
+        pointHoverRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        r: {
+          beginAtZero: true, max: 100,
+          ticks: { display: false },
+          grid: { color: 'rgba(255,255,255,0.06)' },
+          angleLines: { color: 'rgba(255,255,255,0.06)' },
+          pointLabels: { color: '#94a3b8', font: { size: 11, family: 'Inter' } }
+        }
+      }
+    }
+  });
+}
+
+// ──── FEATURE IMPORTANCE ────
+async function loadFeatureImportance() {
+  try {
+    const res = await fetch('/api/feature-importance');
+    const data = await res.json();
+    if (!data.ok) return;
+    const ctx = document.getElementById('featureChart').getContext('2d');
+    if (featureChart) featureChart.destroy();
+
+    const colors = data.values.map((_, i) => {
+      const hue = 220 + i * 15;
+      return `hsl(${hue}, 70%, 60%)`;
+    });
+
+    featureChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: data.labels.map(l => l.replace(/_/g, ' ')),
+        datasets: [{
+          data: data.values,
+          backgroundColor: colors,
+          borderRadius: 6,
+          barThickness: 18
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748b', font: { size: 11 } } },
+          y: { grid: { display: false }, ticks: { color: '#94a3b8', font: { size: 11, family: 'Inter' } } }
+        }
+      }
+    });
+  } catch(e) { /* silently fail */ }
+}
+
+// ──── TOAST ────
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ──── INIT ────
+document.addEventListener('DOMContentLoaded', () => {
+  loadFeatureImportance();
+});
+</script>
+</body>
+</html>
